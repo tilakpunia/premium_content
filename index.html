@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>x402 demo</title>
+</head>
+<body>
+  <h2>Premium Content Demo</h2>
+
+  <button id="fetch-btn">Get Premium Content</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    async function getPremium() {
+      const output = document.getElementById("output");
+
+      try {
+        // 1. First request (no payment)
+        let res = await fetch("/premium-content");
+
+        // If server says "Payment Required"
+        if (res.status === 402) {
+          const info = await res.json();
+          output.textContent = "Payment needed: " + JSON.stringify(info, null, 2);
+
+          // 2. Fake payment step
+          await new Promise(r => setTimeout(r, 1000)); // pretend to pay
+
+          // 3. Retry the request with valid header
+          res = await fetch("/premium-content", {
+            headers: {
+              "X-PAYMENT": "valid"
+            }
+          });
+        }
+
+        // 4. Show final result
+        const data = await res.json();
+        output.textContent += "\n\nContent: " + JSON.stringify(data, null, 2);
+      } catch (err) {
+        output.textContent = "Error: " + err;
+      }
+    }
+
+    document.getElementById("fetch-btn").onclick = getPremium;
+  </script>
+</body>
+</html>
